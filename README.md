@@ -95,19 +95,19 @@ import json
 
 def foo():
 
-	url = 'https://some_url/graphql'
-	qs = gql.get_queries('some_file_path/queries.gql')
+    url = 'https://some_url/graphql'
+    qs = gql.get_queries('some_file_path/queries.gql')
 	
-	if True:
+        if True:
 	
-		r = None
+        r = None
 		
-		if True:
-			r = gql.query(url, qs['one'])
-		if False:
-			r = gql.query(url, qs['two'])
+        if True:
+        r = gql.query(url, qs['one'])
+        if False:
+        r = gql.query(url, qs['two'])
 	
-		pprint(r.json())
+        pprint(r.json())
 ```
 
 ### Drawbacks
