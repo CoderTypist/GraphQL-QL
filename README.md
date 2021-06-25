@@ -42,49 +42,48 @@ import pprint
 
 def foo():
 
-	url = 'https://some_url/graphql'
+    url = 'https://some_url/graphql'
 
-	if True:
-	
-		r = None
+    if True:
+        r = None
 		
-		if True:
-			query_one = """"query {
-	something {
-		attr1
-		attr4
-		attr7
-	}
+        if True:
+            query_one = """"query {
+    something {
+        attr1
+        attr4
+        attr7
+    }
 }"""
-			r = request.post(url, json={'query': query_one})
-		else:
-			query_two = """query {
-	otherthing {
-		attr3
-		attr8
-	}
+            r = request.post(url, json={'query': query_one})
+        else:
+            query_two = """query {
+    otherthing {
+        attr3
+        attr8
+    }
 }"""	
-			r = request.post(url, json={'query': query_two})
+            r = request.post(url, json={'query': query_two})
 	
-		pprint(r.json())
+        pprint(r.json())
 ```
 
 This is not pleasant to look at and is somewhat difficult to read. 
 What if all of the queries were moved out to a separate file?
 ```
 query_one {
-	something {
+    something {
         attr1
-		attr4
-		attr7
-	}
+        attr4
+        attr7
+    }
 }
 
 query_two {
-	otherthing {
-		attr3
-		attr8
-	}
+    otherthing {
+        attr3
+        attr8
+    }
 }
 ```
 
@@ -99,15 +98,14 @@ def foo():
     qs = gql.get_queries('some_file_path/queries.gql')
 	
         if True:
-	
-        r = None
+            r = None
 		
-        if True:
-        r = gql.query(url, qs['one'])
-        if False:
-        r = gql.query(url, qs['two'])
+            if True:
+                r = gql.query(url, qs['one'])
+            if False:
+                r = gql.query(url, qs['two'])
 	
-        pprint(r.json())
+            pprint(r.json())
 ```
 
 ### Drawbacks
