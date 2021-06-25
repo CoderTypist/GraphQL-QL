@@ -95,7 +95,7 @@ import json
 def foo():
 
     url = 'https://some_url/graphql'
-    qs = gql.get_queries('some_file_path/queries.gql')
+    qs = gql.load('some_file_path/queries.gql')
 	
         if True:
             r = None
