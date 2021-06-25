@@ -102,7 +102,7 @@ def foo():
 		
             if True:
                 r = gql.query(url, qs['one'])
-            if False:
+            else:
                 r = gql.query(url, qs['two'])
 	
             pprint(r.json())
