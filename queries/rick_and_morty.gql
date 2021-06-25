@@ -1,0 +1,27 @@
+query_name {
+    characters {
+        results {
+            name
+        }
+    }
+}
+
+query_status {
+    characters {
+        results {
+            status
+        }
+    }
+}
+
+query_info {
+    characters {
+        results {
+            name
+            status
+            species
+            type
+            gender
+        }
+    }
+}

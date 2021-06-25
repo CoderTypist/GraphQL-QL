@@ -1,0 +1,41 @@
+query_name {
+    launchesPast(limit: 4) {
+        mission_name
+    }
+}
+
+query_basics {
+    launchesPast(limit: 3) {
+        mission_name
+        launch_date_local
+        launch_site {
+            site_name_long
+        }
+        rocket {
+            rocket_name
+        }
+    }
+}
+
+query_verbose {
+    launchesPast(limit: 2) {
+        mission_name
+        launch_date_local
+        launch_site {
+            site_name_long
+        }
+        rocket {
+            rocket_name
+            rocket_type
+        }
+        ships {
+            name
+            home_port
+            active
+            model
+            year_built
+        }
+        upcoming
+        mission_id
+    }
+}
