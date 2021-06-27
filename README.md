@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-=======
-
->>>>>>> 408fc61ba9a2a914c3f7c319cc198e0f36108986
 # GraphQL-QL (GraphQL Query Loader)
 
 ### Description
@@ -135,9 +131,4 @@ def foo():
 The primary drawback to this approach is that the purpose of the query is not apparent in the code. Anybody reading the code would need to refer to the .gql file to see what the queries do.
 
 ##### Query Modification
-<<<<<<< HEAD
 Another potential drawback is query modification. If a query is modified or renamed after initially being used in the code the behavior of the code may change without anybody noticing. 
-=======
-Another potential drawback is query modification. If a query is modified or renamed after initially being used in the code the behavior of the code may change without anybody noticing. 
-			
->>>>>>> 408fc61ba9a2a914c3f7c319cc198e0f36108986
