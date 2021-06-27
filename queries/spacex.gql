@@ -1,9 +1,11 @@
+# get launch names
 query_name {
     launchesPast(limit: 4) {
         mission_name
     }
 }
 
+# get basic launch info
 query_basics {
     launchesPast(limit: 3) {
         mission_name
@@ -17,6 +19,7 @@ query_basics {
     }
 }
 
+# get many launch details
 query_verbose {
     launchesPast(limit: 2) {
         mission_name
@@ -24,10 +27,12 @@ query_verbose {
         launch_site {
             site_name_long
         }
+        # rocket info
         rocket {
             rocket_name
             rocket_type
         }
+        # ship info
         ships {
             name
             home_port

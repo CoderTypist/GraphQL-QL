@@ -1,3 +1,4 @@
+# get character names
 query_name {
     characters {
         results {
@@ -6,6 +7,7 @@ query_name {
     }
 }
 
+# get character status
 query_status {
     characters {
         results {
@@ -14,8 +16,10 @@ query_status {
     }
 }
 
+# get character info
 query_info {
     characters {
+        # many character attributes
         results {
             name
             status

@@ -40,6 +40,11 @@ def example_02():
     # gql.rprint(r, verbose=False)
 
 
+def print_queries():
+    gql.pqueries(gql.load('./queries/rick_and_morty.gql'), title='RICK AND MORTY:')
+    gql.pqueries(gql.load('./queries/spacex.gql'), title='SPACEX:')
+
+
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     main()

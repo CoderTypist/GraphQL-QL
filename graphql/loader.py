@@ -2,12 +2,13 @@ import filio
 import re
 
 
+# load queries from an external file into a python dictionary
 def load(file_path: str) -> dict:
 
     with open(file_path, 'r') as file:
 
         # read in all text
-        str_queries = filio.str_file(file_path)
+        str_queries = filio.str_file(file_path, l_omit='#')
 
         # separate individual queries
         str_queries = str_queries.split('query_')
@@ -47,9 +48,19 @@ def load(file_path: str) -> dict:
     return queries
 
 
-def pqueries(queries: dict):
+# print the names of the queries available in the dictionary
+def pqueries(queries: dict, title=None):
+
+    if title:
+        print('-----------------------------------------------------')
+        print(title)
 
     for k in queries.keys():
         print('-----------------------------------------------------')
         print('{}:'.format(k))
+
+        for i in range(len(k)+1):
+            print('-', end='')
+        print()
+
         print(queries[k])

@@ -1,2 +1,2 @@
-from .generator import *
+from .loader import *
 from .request import *
