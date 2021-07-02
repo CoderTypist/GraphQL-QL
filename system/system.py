@@ -3,6 +3,7 @@ import re
 import subprocess
 from typing import List
 
+OTHER = -1
 WINDOWS = 0
 CMD = 1
 POWERSHELL = 2
@@ -64,6 +65,7 @@ def str_stat(p) -> str:
 
 
 def win_or_linux():
+
     p = get_platform()
 
     if WINDOWS == p:
@@ -73,12 +75,33 @@ def win_or_linux():
     raise UnknownPlatformException(p)
 
 
-# a wrapper for subprocess()
-# Even if the execution platform changes, you can still run
-# the desired shell with little to no change.
+def win_default_shell() -> int:
+
+    p = get_platform()
+
+    # platform must be Windows
+    if WINDOWS != p and WSL != p:
+        raise UnknownPlatformException(p)
+
+    default_shell = subprocess.run(['cmd.exe', '/c', 'echo', '%ComSpec%'], stdout=subprocess.PIPE).stdout.decode()
+
+    # remove ending '\n\r'
+    default_shell = default_shell[:-2]
+
+    if '\\cmd.exe' == default_shell[-8:]:
+        return CMD
+
+    elif '\\powershell.exe' == default_shell[-15:]:
+        return POWERSHELL
+
+    # if the default shell was not cmd or powershell
+    raise UnknownShellException(default_shell)
+
+
+# A wrapper for subprocess()
 # The only thing that may need to be changed is the target.
 def shell(target: int, args: List, tab=False, verbose=False) -> str:
-    # WINDOWS will default to mean CMD
+
     # On WINDOWS/WSL, LINUX will default to mean WSL
 
     def info():
@@ -97,10 +120,29 @@ def shell(target: int, args: List, tab=False, verbose=False) -> str:
 
     if WINDOWS == p:
 
-        if CMD == target or WINDOWS == target:
-            com = args
+        default_shell = win_default_shell()
+
+        if WINDOWS == target:
+            target = default_shell
+
+        if CMD == target:
+            if CMD == default_shell:
+                com = args
+            elif POWERSHELL == default_shell:
+                com = ['cmd.exe', '/c']
+                com.extend(args)
+            else:
+                raise UnexpectedValueException(default_shell)
 
         elif POWERSHELL == target:
+            if CMD == default_shell:
+                com = ['cmd.exe', '/c']
+                com.extend(args)
+            elif POWERSHELL == default_shell:
+                com = args
+            else:
+                raise UnexpectedValueException(default_shell)
+
             com = ['powershell.exe']
             com.extend(args)
 
@@ -160,10 +202,23 @@ def shell(target: int, args: List, tab=False, verbose=False) -> str:
         return None
 
 
-def test():
+def env(target, var_name):
 
-    print(shell(WINDOWS, ['dir'], tab=True, verbose=True))
-    print(shell(CMD, ['dir'], tab=True, verbose=True))
-    print(shell(POWERSHELL, ['ls'], tab=True, verbose=True))
-    print(shell(WSL, ['ls', '-la'], tab=True, verbose=True))
-    print(shell(LINUX, ['ls', '-la'], tab=True, verbose=True))
+    if WINDOWS == target:
+        target = win_default_shell()
+
+    if CMD == target:
+        var = shell(CMD, ['echo', '%' + var_name + '%'])
+    elif POWERSHELL == target:
+        var = shell(POWERSHELL, ['echo', '$env:' + var_name])
+    elif WSL == target:
+        var = shell(WSL, ['echo', '$' + var_name])
+    elif LINUX == target:
+        var = shell(LINUX, ['echo', '$' + var_name])
+    else:
+        raise InvalidTargetException(target)
+
+    if var:
+        return var.strip()
+    else:
+        return None

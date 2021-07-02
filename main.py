@@ -1,5 +1,6 @@
 import graphql as gql
-import shell
+import subprocess
+import system as sos
 
 
 def main():
