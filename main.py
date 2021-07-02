@@ -1,4 +1,5 @@
 import graphql as gql
+import shell
 
 
 def main():

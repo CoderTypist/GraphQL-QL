@@ -1,4 +1,5 @@
 import platform
+import re
 import subprocess
 from typing import List
 
@@ -76,8 +77,7 @@ def win_or_linux():
 # Even if the execution platform changes, you can still run
 # the desired shell with little to no change.
 # The only thing that may need to be changed is the target.
-def shell(target: int, args: List, verbose=False):
-
+def shell(target: int, args: List, tab=False, verbose=False) -> str:
     # WINDOWS will default to mean CMD
     # On WINDOWS/WSL, LINUX will default to mean WSL
 
@@ -90,6 +90,7 @@ def shell(target: int, args: List, verbose=False):
 
     p = get_platform()
     com = None
+    ret = None
 
     if verbose:
         info()
@@ -110,7 +111,7 @@ def shell(target: int, args: List, verbose=False):
         else:
             raise UnknownShellException(target)
 
-        return subprocess.run(com, shell=True, stdout=subprocess.PIPE).stdout.decode()
+        ret = subprocess.run(com, shell=True, stdout=subprocess.PIPE).stdout
 
     elif WSL == p:
         if CMD == target or WINDOWS == target:
@@ -127,7 +128,7 @@ def shell(target: int, args: List, verbose=False):
         else:
             raise UnknownShellException(target)
 
-        return subprocess.run(com, stdout=subprocess.PIPE).stdout.decode()
+        ret = subprocess.run(com, stdout=subprocess.PIPE).stdout
 
     elif LINUX == p:
         if CMD == target or WINDOWS == target or WSL == target:
@@ -139,7 +140,30 @@ def shell(target: int, args: List, verbose=False):
         else:
             raise UnknownShellException(target)
 
-        return subprocess.run(com, stdout=subprocess.PIPE).stdout.decode()
+        ret = subprocess.run(com, stdout=subprocess.PIPE).stdout.decode()
 
     else:
         raise UnknownPlatformException(target)
+
+    if ret:
+
+        text = ret.decode()
+
+        if tab:
+            if text[0] != '\t':
+                text = '\t' + text
+            text = re.sub('\n', '\n\t', text)
+
+        return text
+
+    else:
+        return None
+
+
+def test():
+
+    print(shell(WINDOWS, ['dir'], tab=True, verbose=True))
+    print(shell(CMD, ['dir'], tab=True, verbose=True))
+    print(shell(POWERSHELL, ['ls'], tab=True, verbose=True))
+    print(shell(WSL, ['ls', '-la'], tab=True, verbose=True))
+    print(shell(LINUX, ['ls', '-la'], tab=True, verbose=True))
