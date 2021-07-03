@@ -43,7 +43,13 @@ def rprint(r: requests.Response, verbose=True) -> None:
 
 
 # print results of query
-def pquery(url: str, q: str, verbose=True) -> dict:
+def pquery(url: str, q: str, verbose=False) -> dict:
     r = query(url, q)
-    rprint(r, verbose=verbose)
+
+    if verbose:
+        rprint(r, verbose=verbose)
+
+    else:
+        pprint.pprint(r.json())
+
     return r

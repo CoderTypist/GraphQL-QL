@@ -49,7 +49,7 @@ def load(file_path: str) -> dict:
 
 
 # print the names of the queries available in the dictionary
-def pqueries(queries: dict, title=None):
+def pqueries(queries: dict, title=None) -> None:
 
     if title:
         print('-----------------------------------------------------')

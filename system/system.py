@@ -35,7 +35,7 @@ class UnknownShellException(Exception):
         super().__init__(message)
 
 
-def get_platform():
+def get_platform() -> int:
     p = platform.platform().lower()
 
     if 'windows' in p:
@@ -64,7 +64,7 @@ def str_stat(p) -> str:
     raise UnexpectedValueException(p)
 
 
-def win_or_linux():
+def win_or_linux() -> int:
 
     p = get_platform()
 
@@ -112,37 +112,26 @@ def shell(target: int, args: List, tab=False, verbose=False) -> str:
             print()
 
     p = get_platform()
+    # command to execute in the shell
     com = None
+    # output from running com
     ret = None
 
     if verbose:
         info()
 
-    if WINDOWS == p:
+    # if WINDOWS is specific as target, set the target to the default shell
+    default_shell = None
 
+    if WINDOWS == target:
         default_shell = win_default_shell()
+        target = default_shell
 
-        if WINDOWS == target:
-            target = default_shell
-
+    if WINDOWS == p:
         if CMD == target:
-            if CMD == default_shell:
-                com = args
-            elif POWERSHELL == default_shell:
-                com = ['cmd.exe', '/c']
-                com.extend(args)
-            else:
-                raise UnexpectedValueException(default_shell)
+            com = args
 
         elif POWERSHELL == target:
-            if CMD == default_shell:
-                com = ['cmd.exe', '/c']
-                com.extend(args)
-            elif POWERSHELL == default_shell:
-                com = args
-            else:
-                raise UnexpectedValueException(default_shell)
-
             com = ['powershell.exe']
             com.extend(args)
 
@@ -156,7 +145,8 @@ def shell(target: int, args: List, tab=False, verbose=False) -> str:
         ret = subprocess.run(com, shell=True, stdout=subprocess.PIPE).stdout
 
     elif WSL == p:
-        if CMD == target or WINDOWS == target:
+
+        if CMD == target:
             com = ['cmd.exe', '/c']
             com.extend(args)
 
@@ -173,7 +163,7 @@ def shell(target: int, args: List, tab=False, verbose=False) -> str:
         ret = subprocess.run(com, stdout=subprocess.PIPE).stdout
 
     elif LINUX == p:
-        if CMD == target or WINDOWS == target or WSL == target:
+        if CMD == target or POWERSHELL == target or WSL == target:
             raise InvalidTargetException(p, target, shell=True, stdout=subprocess.PIPE)
 
         elif LINUX == target:
@@ -202,7 +192,29 @@ def shell(target: int, args: List, tab=False, verbose=False) -> str:
         return None
 
 
-def env(target, var_name):
+def is_alpha(text: str, extra: List = None) -> bool:
+
+    lower = [chr(_) for _ in range(ord('a'), ord('z')+1)]
+    upper = [chr(_) for _ in range(ord('A'), ord('Z')+1)]
+
+    alpha = lower
+    alpha.extend(upper)
+
+    if extra:
+        alpha.extend(extra)
+
+    for c in text:
+        if c not in alpha:
+            print('ERROR:', c)
+            return False
+
+    return True
+
+
+def env(target, var_name) -> str:
+
+    if not is_alpha(var_name, extra=['_']):
+        raise Exception('var_name can only contain letters and underscores: ' + var_name)
 
     if WINDOWS == target:
         target = win_default_shell()
@@ -222,3 +234,11 @@ def env(target, var_name):
         return var.strip()
     else:
         return None
+
+
+# Using default_env is not recommended
+# Behavior will change as the platform/default shell changes
+def denv(var_name: str) -> str:
+
+    p = get_platform()
+    return env(p, var_name)
