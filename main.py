@@ -1,4 +1,5 @@
 import graphql as gql
+from graphql import GraphQL
 import pprint
 import requests
 import subprocess
@@ -31,13 +32,15 @@ def main():
     # - uses GraphQL-QL
     # ex_gql_05()
 
+    ex_gql_06()
+
     # execute shell commands
     # - uses system.shell()
     # - more robust than subprocess.run()
     # ex_shell()
 
     # get environment variables through desired shell/platform
-    ex_env()
+    # ex_env()
 
 
 def ex_gql_01():
@@ -112,38 +115,37 @@ def ex_gql_02():
                         }
                     }'''
 
-    url = 'https://rickandmortyapi.com/graphql/'
-    gql.pquery(url, query_name)
-    gql.pquery(url, query_status)
-    gql.pquery(url, query_info)
+    api = GraphQL('https://rickandmortyapi.com/graphql/')
+    api.pquery(query_name)
+    api.pquery(query_status)
+    api.pquery(query_info)
 
 
 def ex_gql_03():
 
-    url = 'https://rickandmortyapi.com/graphql/'
+    api = GraphQL('https://rickandmortyapi.com/graphql/')
     qs = gql.load('./queries/rick_and_morty.gql')
 
-    gql.pquery(url, qs['name'])
-    gql.pquery(url, qs['status'])
-    gql.pquery(url, qs['info'])
-    # gql.pquery(url, qs['status'], verbose=False)
+    api.pquery(qs['name'])
+    api.pquery(qs['status'])
+    api.pquery(qs['info'])
 
 
 def ex_gql_04():
 
-    url = 'https://api.spacex.land/graphql/'
+    api = GraphQL('https://api.spacex.land/graphql/')
     qs = gql.load('./queries/spacex.gql')
 
     # print all available queries
     # gql.pqueries(qs)
 
-    r = gql.query(url, qs['name'])
+    r = api.query(qs['name'])
     gql.rprint(r)
 
-    r = gql.query(url, qs['basics'])
+    r = api.query(qs['basics'])
     gql.rprint(r)
 
-    r = gql.query(url, qs['verbose'])
+    r = api.query(qs['verbose'])
     gql.rprint(r)
     # gql.rprint(r, verbose=False)
 
@@ -151,6 +153,13 @@ def ex_gql_04():
 def ex_gql_05():
     gql.pqueries(gql.load('./queries/rick_and_morty.gql'), title='RICK AND MORTY:')
     gql.pqueries(gql.load('./queries/spacex.gql'), title='SPACEX:')
+
+
+def ex_gql_06():
+    api = GraphQL('https://rickandmortyapi.com/graphql/')
+    print(api.types)
+    print(api.type_fields("Episodes"))
+    pprint.pprint(api.all_types_all_fields(waiter=True, omit_introspective=True))
 
 
 def ex_shell():
