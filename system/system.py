@@ -236,6 +236,13 @@ def env(target, var_name) -> str:
         return None
 
 
+def wenv(var_name: str) -> str:
+    pass
+
+
+def lenv(var_name: str) -> str:
+    pass
+
 # Using default_env is not recommended
 # Behavior will change as the platform/default shell changes
 def denv(var_name: str) -> str:

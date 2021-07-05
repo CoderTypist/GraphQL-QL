@@ -1,43 +1,40 @@
-import ast
+from abc import ABC, abstractmethod
 import pprint
+import query_manager.response as response
 import re
 import requests
 from typing import List
 
 
-def is_ok(r: requests.Response) -> bool:
-    if 200 == r.status_code:
-        return True
-    return False
+class API(ABC):
 
+    def __init__(self, url: str):
+        self.url = url
 
-# response print
-def rprint(r: requests.Response, verbose=True) -> None:
+    @abstractmethod
+    def query(self, q: str) -> str:
+        pass
 
-    if verbose:
-        print('-------------------------------------------------------------------------------------------------------')
-        print('REQUEST & RESPONSE:')
-        print('-------------------------------------------------------------------------------------------------------')
+    # print results of query
+    def pquery(self, q: str, verbose=False) -> dict:
+        r = self.query(q)
 
-        if r:
-            q = ast.literal_eval(r.request.body.decode())['query']
-            print(q)
+        if verbose:
+            response.rprint(r, verbose=verbose)
+
         else:
-            print('\tError')
-
-        print('-------------------------------------------------------------------------------------------------------')
-
-        if r:
             pprint.pprint(r.json())
-        else:
-            print('\tError')
 
-        print('-------------------------------------------------------------------------------------------------------')
-        print('Status Code:', r.status_code)
-        print('-------------------------------------------------------------------------------------------------------')
+        return r
 
-    else:
-        pprint.pprint(r.json())
+
+class Rest(API):
+
+    def __init__(self, url: str):
+        super().__init__(url)
+
+    def query(self, q: str) -> str:
+        return requests.get(self.url + q)
 
 
 '''
@@ -48,23 +45,23 @@ Making a function that returns the types by making a query could rapidly consume
         print(api.types())
         print(api.types())
         print(api.types())
-    
+
 The solution seems to be save the result of the query in an instance variable
 
     Ex: 
         class GraphQL:
-        
+
             def __init__(self):
                 self.types = self.query('{__schema{types{name}}}')
-                
+
             def query(self, q: str) -> dict:
                 return requests.post(self.url, json={'query': q})
-    
+
         api = GraphQL(url)
         print(api.types)
         print(api.types)
         print(api.types)
-        
+
 However, doing this means that simply instantiating the GraphQL object will use some of the gas limit. 
 This is not desirable, especially if the information retrieved is never used.
 
@@ -73,12 +70,11 @@ is accessed. The query is only made if necessary.
 '''
 
 
-class GraphQL:
+class GraphQL(API):
 
     def __init__(self, url: str):
 
-        self.url: str = url
-
+        super().__init__(url)
         self._re_name: re.Pattern = None
         self._types: List[str] = None
         self._fields = {}
@@ -97,6 +93,9 @@ class GraphQL:
             self._types = self.re_name.findall(types_raw)
 
         return self._types
+
+    def query(self, q: str) -> dict:
+        return requests.post(self.url, json={'query': q})
 
     # invoked by self.type_fields
     # invoked by self.all_types_all_fields
@@ -153,18 +152,3 @@ class GraphQL:
             print('----------------------------')
 
         return self._fields
-
-    def query(self, q: str) -> dict:
-        return requests.post(self.url, json={'query': q})
-
-    # print results of query
-    def pquery(self, q: str, verbose=False) -> dict:
-        r = self.query(q)
-
-        if verbose:
-            rprint(r, verbose=verbose)
-
-        else:
-            pprint.pprint(r.json())
-
-        return r
