@@ -2,6 +2,7 @@ import platform
 import re
 import subprocess
 from typing import List
+import warnings
 
 OTHER = -1
 WINDOWS = 0
@@ -48,7 +49,7 @@ def get_platform() -> int:
         return -1
 
 
-def str_stat(p) -> str:
+def str_stat(p: int) -> str:
     if WINDOWS == p:
         return 'Windows'
     elif CMD == p:
@@ -164,7 +165,7 @@ def shell(target: int, args: List, tab=False, verbose=False) -> str:
 
     elif LINUX == p:
         if CMD == target or POWERSHELL == target or WSL == target:
-            raise InvalidTargetException(p, target, shell=True, stdout=subprocess.PIPE)
+            raise InvalidTargetException(p, target)
 
         elif LINUX == target:
             com = args
@@ -192,6 +193,26 @@ def shell(target: int, args: List, tab=False, verbose=False) -> str:
         return None
 
 
+def windows(args: List, tab=False, verbose=False) -> str:
+    return shell(WINDOWS, args, tab=tab, verbose=verbose)
+
+
+def cmd(args: List, tab=False, verbose=False) -> str:
+    return shell(CMD, args, tab=tab, verbose=verbose)
+
+
+def powershell(args: List, tab=False, verbose=False) -> str:
+    return shell(POWERSHELL, args, tab=tab, verbose=verbose)
+
+
+def wsl(args: List, tab=False, verbose=False) -> str:
+    return shell(WSL, args, tab=tab, verbose=verbose)
+
+
+def linux(args: List, tab=False, verbose=False) -> str:
+    return shell(LINUX, args, tab=tab, verbose=verbose)
+
+
 def is_alpha(text: str, extra: List = None) -> bool:
 
     lower = [chr(_) for _ in range(ord('a'), ord('z')+1)]
@@ -211,7 +232,8 @@ def is_alpha(text: str, extra: List = None) -> bool:
     return True
 
 
-def env(target, var_name) -> str:
+# Assumes that the environment variable already exists
+def env(target: int, var_name: str) -> str:
 
     if not is_alpha(var_name, extra=['_']):
         raise Exception('var_name can only contain letters and underscores: ' + var_name)
@@ -228,7 +250,7 @@ def env(target, var_name) -> str:
     elif LINUX == target:
         var = shell(LINUX, ['echo', '$' + var_name])
     else:
-        raise InvalidTargetException(target)
+        raise InvalidTargetException(get_platform(), target)
 
     if var:
         return var.strip()
@@ -236,16 +258,23 @@ def env(target, var_name) -> str:
         return None
 
 
+
 def wenv(var_name: str) -> str:
-    pass
+    return env(WINDOWS, var_name)
 
 
 def lenv(var_name: str) -> str:
-    pass
+    return env(LINUX, var_name)
 
-# Using default_env is not recommended
+
+# Using denv() is not recommended
 # Behavior will change as the platform/default shell changes
+# For more predictable behavior, use wenv() or lenv()
 def denv(var_name: str) -> str:
 
+    w = '\n\n\tUsing denv() is not recommended due to potential unexpected behavior'
+    w += '\n\t\tConsider wenv() for targeting Windows or lenv() for targeting Linux'
+    w += '\n\t\tUse env() if the use of a specific shell is required\n'
+    warnings.warn(w)
     p = get_platform()
     return env(p, var_name)

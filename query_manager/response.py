@@ -10,7 +10,7 @@ def is_ok(r: requests.Response) -> bool:
 
 
 # response print
-def rprint(r: requests.Response, verbose=True) -> None:
+def rprint(r: requests.Response, verbose=False) -> None:
 
     if verbose:
         print('-------------------------------------------------------------------------------------------------------')

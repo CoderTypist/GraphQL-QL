@@ -4,16 +4,34 @@ import query_manager.response as response
 import re
 import requests
 from typing import List
+import warnings
 
 
 class API(ABC):
 
-    def __init__(self, url: str):
+    def __init__(self, url: str, token=None, token_over_http=False):
         self.url = url
+        self.token = token
+        self.token_over_http = token_over_http
 
     @abstractmethod
+    def _query(self, q: str):
+        self.query()
+
     def query(self, q: str) -> str:
-        pass
+
+        # if query contains a token and token cannot be sent over http
+        if self.token and not self.token_over_http:
+
+            # make sure that https is being used
+            if not self.is_https():
+                raise Exception('API: query(): self.token_over_http=False: token must be sent over HTTPS')
+
+        self._query()
+
+    def is_https(self):
+        warnings.warning('API.is_https() has not yet been implemented')
+        return True
 
     # print results of query
     def pquery(self, q: str, verbose=False) -> dict:
@@ -30,10 +48,10 @@ class API(ABC):
 
 class Rest(API):
 
-    def __init__(self, url: str):
-        super().__init__(url)
+    def __init__(self, url: str, token=None, token_over_http=False):
+        super().__init__(url, token=token, token_over_http=token_over_http)
 
-    def query(self, q: str) -> str:
+    def _query(self, q: str) -> str:
         return requests.get(self.url + q)
 
 
@@ -72,9 +90,9 @@ is accessed. The query is only made if necessary.
 
 class GraphQL(API):
 
-    def __init__(self, url: str):
+    def __init__(self, url: str, token=None, token_over_http=False):
 
-        super().__init__(url)
+        super().__init__(url, token=token, token_over_http=token_over_http)
         self._re_name: re.Pattern = None
         self._types: List[str] = None
         self._fields = {}
@@ -94,7 +112,7 @@ class GraphQL(API):
 
         return self._types
 
-    def query(self, q: str) -> dict:
+    def _query(self, q: str) -> dict:
         return requests.post(self.url, json={'query': q})
 
     # invoked by self.type_fields
