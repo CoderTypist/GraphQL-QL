@@ -125,7 +125,7 @@ def win_default_shell() -> int:
 
 # A wrapper for subprocess()
 # The only thing that may need to be changed is the target.
-def shell(target: int, args: List, tab=False, verbose=False, win_remove_carriage=True, strip=True) -> str:
+def shell(target: int, args: List, tab=False, verbose=False, strip=True, win_remove_carriage=True,) -> str:
 
     p = get_platform()
     # command to execute in the shell
@@ -334,7 +334,7 @@ def env(target: int, var_name: str, cmd_logic=True) -> str:
         raise InvalidTargetException(get_platform(), target)
 
     if var:
-        return var.strip()
+        return var
     else:
         return None
 
