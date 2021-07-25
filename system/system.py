@@ -76,6 +76,30 @@ def win_or_linux() -> int:
     raise UnknownPlatformException(p)
 
 
+def win_lstrip(text: str) -> str:
+
+    while len(text) >= 2:
+
+        if '\r' == text[0] and '\n' == text[1]:
+            text = text[2:]
+        else:
+            return text
+
+
+def win_rstrip(text: str) -> str:
+
+    while len(text) >= 2:
+
+        if '\r' == text[-2] and '\n' == text[-1]:
+            text = text[:-2]
+        else:
+            return text
+
+
+def win_strip(text: str) -> str:
+    return win_lstrip(win_rstrip(text)).strip()
+
+
 def win_default_shell() -> int:
 
     p = get_platform()
@@ -101,16 +125,7 @@ def win_default_shell() -> int:
 
 # A wrapper for subprocess()
 # The only thing that may need to be changed is the target.
-def shell(target: int, args: List, tab=False, verbose=False) -> str:
-
-    # On WINDOWS/WSL, LINUX will default to mean WSL
-
-    def info():
-        if verbose:
-            print()
-            print(f'shell(): source: {str_stat(p)}')
-            print(f'shell(): target: {str_stat(target)}')
-            print()
+def shell(target: int, args: List, tab=False, verbose=False, win_remove_carriage=True, strip=True) -> str:
 
     p = get_platform()
     # command to execute in the shell
@@ -119,11 +134,13 @@ def shell(target: int, args: List, tab=False, verbose=False) -> str:
     ret = None
 
     if verbose:
-        info()
+        print()
+        print(f'shell(): source: {str_stat(p)}')
+        print(f'shell(): target: {str_stat(target)}')
+        print()
 
-    # if WINDOWS is specific as target, set the target to the default shell
-    default_shell = None
-
+    # The windows default shell is CMD, but it can be changed
+    # The code only accounts for the default shell being set to POWERSHELL
     if WINDOWS == target:
         default_shell = win_default_shell()
         target = default_shell
@@ -136,6 +153,7 @@ def shell(target: int, args: List, tab=False, verbose=False) -> str:
             com = ['powershell.exe']
             com.extend(args)
 
+        # On WINDOWS, LINUX will default to mean WSL
         elif WSL == target or LINUX == target:
             com = ['wsl']
             com.extend(args)
@@ -155,6 +173,7 @@ def shell(target: int, args: List, tab=False, verbose=False) -> str:
             com = ['powershell.exe']
             com.extend(args)
 
+        # On WSL, LINUX will default to mean WSL
         elif WSL == target or LINUX == target:
             com = args
 
@@ -182,6 +201,19 @@ def shell(target: int, args: List, tab=False, verbose=False) -> str:
 
         text = ret.decode()
 
+        if strip:
+
+            # cmd and powershell use '\r\n' as padding
+            if CMD == target or POWERSHELL == target:
+                text = win_strip(text)
+            else:
+                text = text.strip()
+
+        # remove carriage returns ('\r') for CMD and POWERSHELL
+        if win_remove_carriage and (CMD == target or POWERSHELL == target):
+            text = text.replace('\r', '')
+
+        # add a '\t' in front of each line of output
         if tab:
             if text[0] != '\t':
                 text = '\t' + text
@@ -233,8 +265,37 @@ def is_alpha(text: str, extra: List = None) -> bool:
 
 
 # Assumes that the environment variable already exists
-def env(target: int, var_name: str) -> str:
+#
+# Value returned if an environment variable does not exist:
+#
+#     windows:    depends if cmd or powershell
+#     cmd:        var name wrapped in '%'
+#     powershell: NoneType
+#     wsl:        empty str
+#     linux:      empty str
+#
+# With cmd, it is assumed that if %var_name% is returned that the
+# environment variable does not exist, however, this may not be
+# the case. It is possible to do something like this:
+#
+#     Note that the environment variable 'house' does not exist
+#     $ echo %house%
+#     > %house%
+#     $ set house=hello
+#     $ echo %house%
+#     > hello
+#     $ set house=%%house%%
+#     $ echo %house%
+#     > %house%
+#
+# Even though this is possible, it is very unlikely that this will
+# ever be the case. A more robust check would involve writing a batch
+# script that checks to see if the value of the variable is "", however,
+# this method is not perfect either.
 
+def env(target: int, var_name: str, cmd_logic=True) -> str:
+
+    # prevent shell injection
     if not is_alpha(var_name, extra=['_']):
         raise Exception('var_name can only contain letters and underscores: ' + var_name)
 
@@ -243,12 +304,32 @@ def env(target: int, var_name: str) -> str:
 
     if CMD == target:
         var = shell(CMD, ['echo', '%' + var_name + '%'])
+
+        # cmd returns %var_name% if the environment variable does not exist
+        # although super unlikely, it is possible for the value to be %var_name%
+        if cmd_logic:
+            if var == '%' + var_name + '%':
+                return None
+
     elif POWERSHELL == target:
+
+        # powershell returns nothing (None) if the environment variable does not exist
         var = shell(POWERSHELL, ['echo', '$env:' + var_name])
+
     elif WSL == target:
         var = shell(WSL, ['echo', '$' + var_name])
+
+        # linux shell returns an empty string if the environment variable does not exist
+        if '' == var:
+            return None
+
     elif LINUX == target:
         var = shell(LINUX, ['echo', '$' + var_name])
+
+        # linux shell returns an empty string if the environment variable does not exist
+        if '' == var:
+            return None
+
     else:
         raise InvalidTargetException(get_platform(), target)
 
@@ -256,7 +337,6 @@ def env(target: int, var_name: str) -> str:
         return var.strip()
     else:
         return None
-
 
 
 def wenv(var_name: str) -> str:

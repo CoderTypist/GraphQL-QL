@@ -10,6 +10,7 @@ import system as sos
 
 def main():
 
+    '''
     # github rest api query
     # - queries are embedded in the url
     # - does not use GraphQL-QL
@@ -67,8 +68,9 @@ def main():
 
     # get environment variables from the desired platform
     ex_env_02()
+    '''
 
-    # get environment variables and check for None
+    # try to get environment variables that do not exist
     ex_env_03()
 
 
@@ -324,7 +326,30 @@ def ex_env_02():
 def ex_env_03():
 
     title('ex_env_03')
-    pass
+
+    print('\tWINDOWS:')
+    env = sos.env(sos.WINDOWS, 'win_abcd')
+    print('\t\t', env)
+
+    print('\tCMD (cmd_logic=True (default)):')
+    env = sos.env(sos.CMD, 'cmd_abcd')
+    print('\t\t', env)
+
+    print('\tCMD (cmd_logic=False):')
+    env = sos.env(sos.CMD, 'cmd_abcd', cmd_logic=False)
+    print('\t\t', env)
+
+    print('\tPOWERSHELL:')
+    env = sos.env(sos.POWERSHELL, 'powershell_abcd')
+    print('\t\t', env)
+
+    print('\tWSL:')
+    env = sos.env(sos.WSL, 'wsl_abcd')
+    print('\t\t', env)
+
+    print('\tLINUX:')
+    env = sos.env(sos.LINUX, 'linux_abcd')
+    print('\t\t', env)
 
 
 def title(s: str):
